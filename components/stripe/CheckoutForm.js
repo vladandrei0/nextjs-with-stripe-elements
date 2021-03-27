@@ -1,105 +1,17 @@
 import React, { useState } from 'react'
 import { CardElement, useElements, useStripe } from '@stripe/react-stripe-js'
-import styles from '../../styles/styles.module.css'
+import { Field, CardField, SubmitButton, ErrorMessage, ResetButton } from './Formcomps'
+import styles from './styles.module.css'
+import { fetchPostJSON } from '../../utils/api-helpers'
 
-const CARD_OPTIONS = {
-   iconStyle: "solid",
-   style: {
-      base: {
-         iconColor: "#c4f0ff",
-         color: "#fff",
-         fontWeight: 500,
-         fontFamily: "Roboto, Open Sans, Segoe UI, sans-serif",
-         fontSize: "16px",
-         fontSmoothing: "antialiased",
-         ":-webkit-autofill": {
-            color: "#fce883"
-         },
-         "::placeholder": {
-            color: "#87bbfd"
-         }
-      },
-      invalid: {
-         iconColor: "#ffc7ee",
-         color: "#ffc7ee"
-      }
-   },
-   hidePostalCode: true
-};
 
-const CardField = ({ onChange }) => (
-   <div className={styles.FormCard}>
-      <CardElement options={CARD_OPTIONS} onChange={onChange} />
-   </div>
-);
-
-const Field = ({
-   label,
-   id,
-   type,
-   placeholder,
-   required,
-   autoComplete,
-   value,
-   onChange
-}) => (
-   <div className={styles.FormRow}>
-      <label htmlFor={id} className={styles.FormRowLabel}>
-         {label}
-      </label>
-      <input
-         className={styles.FormRowInput}
-         id={id}
-         type={type}
-         placeholder={placeholder}
-         required={required}
-         autoComplete={autoComplete}
-         value={value}
-         onChange={onChange}
-      />
-   </div>
-);
-
-const SubmitButton = ({ processing, error, children, disabled }) => (
-   <button
-      className={styles.SubmitButton}
-      type="submit"
-      disabled={processing || disabled}
-   >
-      {processing ? "Processing..." : children}
-   </button>
-);
-
-const ErrorMessage = ({ children }) => (
-   <div className={styles.ErrorMessage} role="alert">
-      <svg width="16" height="16" viewBox="0 0 17 17">
-         <path
-            fill="#FFF"
-            d="M8.5,17 C3.80557963,17 0,13.1944204 0,8.5 C0,3.80557963 3.80557963,0 8.5,0 C13.1944204,0 17,3.80557963 17,8.5 C17,13.1944204 13.1944204,17 8.5,17 Z"
-         />
-         <path
-            fill="#6772e5"
-            d="M8.5,7.29791847 L6.12604076,4.92395924 C5.79409512,4.59201359 5.25590488,4.59201359 4.92395924,4.92395924 C4.59201359,5.25590488 4.59201359,5.79409512 4.92395924,6.12604076 L7.29791847,8.5 L4.92395924,10.8739592 C4.59201359,11.2059049 4.59201359,11.7440951 4.92395924,12.0760408 C5.25590488,12.4079864 5.79409512,12.4079864 6.12604076,12.0760408 L8.5,9.70208153 L10.8739592,12.0760408 C11.2059049,12.4079864 11.7440951,12.4079864 12.0760408,12.0760408 C12.4079864,11.7440951 12.4079864,11.2059049 12.0760408,10.8739592 L9.70208153,8.5 L12.0760408,6.12604076 C12.4079864,5.79409512 12.4079864,5.25590488 12.0760408,4.92395924 C11.7440951,4.59201359 11.2059049,4.59201359 10.8739592,4.92395924 L8.5,7.29791847 L8.5,7.29791847 Z"
-         />
-      </svg>
-      {children}
-   </div>
-);
-
-const ResetButton = ({ onClick }) => (
-   <button type="button" className={styles.ResetButton} onClick={onClick}>
-      <svg width="32px" height="32px" viewBox="0 0 32 32">
-         <path
-            fill="#FFF"
-            d="M15,7.05492878 C10.5000495,7.55237307 7,11.3674463 7,16 C7,20.9705627 11.0294373,25 16,25 C20.9705627,25 25,20.9705627 25,16 C25,15.3627484 24.4834055,14.8461538 23.8461538,14.8461538 C23.2089022,14.8461538 22.6923077,15.3627484 22.6923077,16 C22.6923077,19.6960595 19.6960595,22.6923077 16,22.6923077 C12.3039405,22.6923077 9.30769231,19.6960595 9.30769231,16 C9.30769231,12.3039405 12.3039405,9.30769231 16,9.30769231 L16,12.0841673 C16,12.1800431 16.0275652,12.2738974 16.0794108,12.354546 C16.2287368,12.5868311 16.5380938,12.6540826 16.7703788,12.5047565 L22.3457501,8.92058924 L22.3457501,8.92058924 C22.4060014,8.88185624 22.4572275,8.83063012 22.4959605,8.7703788 C22.6452866,8.53809377 22.5780351,8.22873685 22.3457501,8.07941076 L22.3457501,8.07941076 L16.7703788,4.49524351 C16.6897301,4.44339794 16.5958758,4.41583275 16.5,4.41583275 C16.2238576,4.41583275 16,4.63969037 16,4.91583275 L16,7 L15,7 L15,7.05492878 Z M16,32 C7.163444,32 0,24.836556 0,16 C0,7.163444 7.163444,0 16,0 C24.836556,0 32,7.163444 32,16 C32,24.836556 24.836556,32 16,32 Z"
-         />
-      </svg>
-   </button>
-);
 
 const CheckoutForm = () => {
    const stripe = useStripe();
    const elements = useElements();
+   const [payment, setPayment] = useState({ status: 'initial' })
+   const [errorMessage, setErrorMessage] = useState('')
+
    const [error, setError] = useState(null);
    const [cardComplete, setCardComplete] = useState(false);
    const [processing, setProcessing] = useState(false);
@@ -110,43 +22,83 @@ const CheckoutForm = () => {
       name: ""
    });
 
+   const PaymentStatus = ({ status }) => {
+      switch (status) {
+         case 'processing':
+         case 'requires_payment_method':
+         case 'requires_confirmation':
+            return <h2>Processing...</h2>
+
+         case 'requires_action':
+            return <h2>Authenticating...</h2>
+
+         case 'succeeded':
+            return <h2>Payment Succeeded 🥳</h2>
+
+         case 'error':
+            return (
+               <>
+                  <h2>Error 😭 {errorMessage?.message}</h2>
+                  <h2>{errorMessage?.message}</h2>
+               </>
+            )
+
+         default:
+            return null
+      }
+   }
+
    const handleSubmit = async (event) => {
       event.preventDefault();
+      if (!event.currentTarget.reportValidity()) return
+      setPayment({ status: 'processing' })
 
       if (!stripe || !elements) {
          // Stripe.js has not loaded yet. Make sure to disable
          // form submission until Stripe.js has loaded.
          return;
       }
+      const response = await fetchPostJSON('/api/stripe/payment_intents', {
+         amount: 100,
+      })
+      setPayment(response)
+
+      if (response.statusCode === 500) {
+         setPayment({ status: 'error' })
+         setErrorMessage(response.message)
+         return
+      }
+
+      // Get a reference to a mounted CardElement. Elements knows how
+      // to find your CardElement because there can only ever be one of
+      // each type of element.
+      const cardElement = elements.getElement(CardElement)
+
+      // Use your card Element with other Stripe.js APIs
+      const { error, paymentIntent } = await stripe.confirmCardPayment(
+         response.client_secret,
+         {
+            payment_method: {
+               card: cardElement,
+               billing_details: { name: billingDetails.name, email: billingDetails.email, phone: billingDetails.phone },
+            },
+         }
+      )
 
       if (error) {
-         elements.getElement("card").focus();
-         return;
+         setPayment({ status: 'error' })
+         setErrorMessage(error.message ?? 'An unknown error occured')
+      } else if (paymentIntent) {
+         setPayment(paymentIntent)
       }
 
-      if (cardComplete) {
-         setProcessing(true);
-      }
 
-      const payload = await stripe.createPaymentMethod({
-         type: "card",
-         card: elements.getElement(CardElement),
-         billing_details: billingDetails
-      });
-
-      setProcessing(false);
-
-      if (payload.error) {
-         setError(payload.error);
-      } else {
-         setPaymentMethod(payload.paymentMethod);
-      }
    };
 
    const reset = () => {
-      setError(null);
+      setErrorMessage(null);
       setProcessing(false);
-      setPaymentMethod(null);
+      setPayment({ status: 'initial' });
       setBillingDetails({
          email: "",
          phone: "",
@@ -154,70 +106,73 @@ const CheckoutForm = () => {
       });
    };
 
-   return paymentMethod ? (
+   return payment.status === 'succeeded' ? (
       <div className={styles.Result}>
          <div className={styles.ResultTitle} role="alert">
             Payment successful
          </div>
          <div className={styles.ResultMessage}>
             Thanks for trying Stripe Elements. No money was charged, but we
-            generated a PaymentMethod: {paymentMethod.id}
+            generated a PaymentMethod: {payment.id}
          </div>
          <ResetButton onClick={reset} />
       </div>
    ) : (
-      <form className={styles.Form} onSubmit={handleSubmit}>
-         <fieldset className={styles.FormGroup}>
-            <Field
-               label="Name"
-               id="name"
-               type="text"
-               placeholder="Jane Doe"
-               required
-               autoComplete="name"
-               value={billingDetails.name}
-               onChange={(e) => {
-                  setBillingDetails({ ...billingDetails, name: e.target.value });
-               }}
-            />
-            <Field
-               label="Email"
-               id="email"
-               type="email"
-               placeholder="janedoe@gmail.com"
-               required
-               autoComplete="email"
-               value={billingDetails.email}
-               onChange={(e) => {
-                  setBillingDetails({ ...billingDetails, email: e.target.value });
-               }}
-            />
-            <Field
-               label="Phone"
-               id="phone"
-               type="tel"
-               placeholder="(941) 555-0123"
-               required
-               autoComplete="tel"
-               value={billingDetails.phone}
-               onChange={(e) => {
-                  setBillingDetails({ ...billingDetails, phone: e.target.value });
-               }}
-            />
-         </fieldset>
-         <fieldset className={styles.FormGroup}>
-            <CardField
-               onChange={(e) => {
-                  setError(e.error);
-                  setCardComplete(e.complete);
-               }}
-            />
-         </fieldset>
-         {error && <ErrorMessage>{error.message}</ErrorMessage>}
-         <SubmitButton processing={processing} error={error} disabled={!stripe}>
-            Pay $100
-         </SubmitButton>
-      </form>
+      <>
+         <form className={styles.Form} onSubmit={handleSubmit}>
+            <fieldset className={styles.FormGroup}>
+               <Field
+                  label="Name"
+                  id="name"
+                  type="text"
+                  placeholder="Jane Doe"
+                  required
+                  autoComplete="name"
+                  value={billingDetails.name}
+                  onChange={(e) => {
+                     setBillingDetails({ ...billingDetails, name: e.target.value });
+                  }}
+               />
+               <Field
+                  label="Email"
+                  id="email"
+                  type="email"
+                  placeholder="janedoe@gmail.com"
+                  required
+                  autoComplete="email"
+                  value={billingDetails.email}
+                  onChange={(e) => {
+                     setBillingDetails({ ...billingDetails, email: e.target.value });
+                  }}
+               />
+               <Field
+                  label="Phone"
+                  id="phone"
+                  type="tel"
+                  placeholder="(941) 555-0123"
+                  required
+                  autoComplete="tel"
+                  value={billingDetails.phone}
+                  onChange={(e) => {
+                     setBillingDetails({ ...billingDetails, phone: e.target.value });
+                  }}
+               />
+            </fieldset>
+            <fieldset className={styles.FormGroup}>
+               <CardField
+                  onChange={(e) => {
+                     setErrorMessage(e.error?.message);
+                     setCardComplete(e.complete);
+                  }}
+               />
+            </fieldset>
+            {errorMessage && <ErrorMessage>{errorMessage}</ErrorMessage>}
+            <SubmitButton processing={payment.status === 'processing'} error={errorMessage} disabled={!stripe}>
+               Pay $100
+            </SubmitButton>
+         </form>
+         <PaymentStatus status={payment.status} />
+      </>
    );
 };
 

@@ -6,7 +6,6 @@ import React from "react";
 import CheckoutForm from '../components/stripe/CheckoutForm'
 import { Elements } from "@stripe/react-stripe-js";
 
-import styles from "../styles/styles.module.css";
 import getStripe from '../utils/get-stripejs'
 
 
@@ -22,7 +21,11 @@ const ELEMENTS_OPTIONS = {
 
 const Home = () => {
   return (
-    <div className={styles.AppWrapper}>
+    <div style={{
+      width: '500px',
+      height: '400px',
+      position: 'relative'
+    }}>
       <Elements stripe={getStripe()} options={ELEMENTS_OPTIONS}>
         <CheckoutForm />
       </Elements>

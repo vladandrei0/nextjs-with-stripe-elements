@@ -186,4 +186,41 @@
    cursor: pointer;
    background: transparent;
  }
+/* from here is scroll css */
+ .navitems {
+  background-color: rgb(46, 43, 197);
+  overflow: auto;
+  white-space: nowrap;
+}
+
+
+.navitems a {
+  border-right: 2px solid grey;
+  display: inline-block;
+  color: white;
+  text-align: center;
+  padding: 14px;
+  text-decoration: none;
+}
+
+.navitems a:hover {
+  background-color: #777;
+}
+
+.menucontainer {
+  display: flex;
+  flex-direction: row;
+}
+.buttonblue {
+  color:red;
+  border: 3px solid;
+  background-color: white;
+  text-align: center;
+  padding: 14px;
+  /* text-decoration: none; */
+  cursor: pointer;
+}
+.buttonblue:hover{
+  background-color: whitesmoke;
+}
  

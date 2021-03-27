@@ -1,7 +1,6 @@
 
-import { CURRENCY, MIN_AMOUNT, MAX_AMOUNT } from '../../../../utils/stripeconfig'
-import { formatAmountForStripe } from '../../../utils/stripe-helpers'
-
+import { CURRENCY } from '../../../../utils/stripeconfig'
+import { formatAmountForStripe } from '../../../../utils/stripe-helpers'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
@@ -13,10 +12,6 @@ export default async function handler(req, res) {
    if (req.method === 'POST') {
       const { amount } = req.body
       try {
-         // Validate the amount that was passed from the client.
-         if (!(amount >= MIN_AMOUNT && amount <= MAX_AMOUNT)) {
-            throw new Error('Invalid amount.')
-         }
          // Create PaymentIntent from body params.
          const params = {
             payment_method_types: ['card'],
@@ -30,6 +25,7 @@ export default async function handler(req, res) {
 
          res.status(200).json(payment_intent)
       } catch (err) {
+         console.log('py', err.message)
          res.status(500).json({ statusCode: 500, message: err.message })
       }
    } else {
